@@ -1,8 +1,6 @@
 FROM node:18-alpine
-ENV WORKDIR /app/user
-WORKDIR WORKDIR
-COPY public/ WORKDIR/public
-COPY src/ WORKDIR/src
-COPY package.json /WORKDIR
+WORKDIR .
+COPY . .
 RUN npm install
+EXPOSE 3000
 CMD ["npm", "start"]
