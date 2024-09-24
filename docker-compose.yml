@@ -1,16 +1,76 @@
-version: '3.7'
+networks:
+  docker_tutorial:
+    name: docker_tutorial
 
 services:
 
   react:
     container_name: react
-    build: .
+    build: ./react_project
     ports:
-      - 3000:3000
+      - 4000:3000
     stdin_open: true
     mem_limit: 4G
     cpus: 1
     volumes:
-      - .:/app
+      - ./react_project/:/app
       - '/app/node_modules'
     command: npm start
+
+  node:
+    container_name: node
+    build: ./node_project
+    ports:
+      - 4001:5000
+    mem_limit: 4G
+    cpus: 1
+    volumes:
+      - ./node_project/:/app
+      - '/app/node_modules'
+    stdin_open: true
+    command: node app.js
+    networks:
+      - docker_tutorial
+
+  laravel:
+    container_name: laravel
+    build: ./laravel
+    restart: always
+    mem_limit: 4G
+    cpus: 1
+    volumes:
+      - ./laravel/:/var/www/html:delegated
+      - '/var/www/html/vendor'
+    networks:
+      - docker_tutorial
+
+  nginx:
+    build: ./nginx
+    mem_limit: 4G
+    cpus: 1
+    ports:
+      - "4002:80"
+    volumes:
+      - ./laravel/:/var/www/html:delegated
+      - '/var/www/html/vendor'
+    depends_on:
+      - laravel
+      - mysql
+    networks:
+      - docker_tutorial
+
+  mysql:
+    image: mariadb:latest
+    restart: unless-stopped
+    ports:
+      - "4003:3306"
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - docker_tutorial
+
+
+
